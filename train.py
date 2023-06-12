@@ -54,8 +54,8 @@ class Trainer:
         self.tokenizer = tokenizer
         self.is_ddp_training = is_ddp_training
         
-        self.model = model.to(f"cuda:{self.gpu_id}")  
         self.gpu_id = gpu_id
+        self.model = model.to(f"cuda:{self.gpu_id}")  
         self.gradient_accumulation_steps = gradient_accumulation_steps
         
         self.mixed_precision_dtype = mixed_precision_dtype
@@ -351,9 +351,12 @@ if __name__ == "__main__":
     eval_freq = 150
     
     # TODO: Choose strategy
-    distributed_strategy = "ddp" ### YOUR CODE HERE ###
-    
-    if distributed_strategy  == "ddp":
+    if os.environ.get("NO_DDP"):
+        distributed_strategy = None ### YOUR CODE HERE ###
+    else:
+        distributed_strategy = "ddp" ### YOUR CODE HERE ###
+
+    if distributed_strategy == "ddp":
         # TODO: Initialize the process group for distributed data parallelism with nccl backend.
         # After that, you should set the 'local_rank' from the environment variable 'LOCAL_RANK'.
         
@@ -376,7 +379,7 @@ if __name__ == "__main__":
         max_length = max_length,
         batch_size = batch_size,
         gpu_id=local_rank,
-        mixed_precision_dtype = torch.float16,  #TODO: Set the mixed precision data type, hint use float16
+        mixed_precision_dtype = torch.float16 if os.environ.get("MIX_PREC_TRAIN") else None,  #TODO: Set the mixed precision data type, hint use float16
         tokenizer=tokenizer,
         output_dir= OUTPUT_DIR,
         is_ddp_training = True if distributed_strategy == "ddp" else False,

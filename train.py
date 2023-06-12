@@ -295,16 +295,11 @@ def _is_master_process():
 
 def load_pretrained_model(local_rank, model_path: str = ""):
     # TODO: Load a pretrained AutoModelForCausalLM from the 'model_path' in float16 data type. 
-    # Make sure to set 'device_map' to '{"": torch.device(f"cuda:{local_rank}")}' for DDP training.
-    if os.environ.get("NO_DDP"):
-        model = AutoModelForCausalLM.from_pretrained(
-            model_path,
-        ) ### YOUR CODE HERE ###
-    else:
-        model = AutoModelForCausalLM.from_pretrained(
-            model_path, 
-            device_map = {"": torch.device(f"cuda:{local_rank}")}
-        ).half() ### YOUR CODE HERE ###
+    # Make sure to set 'device_map' to '{"": torch.device(f"cuda:{local_rank}")}' for DDP training
+    model = AutoModelForCausalLM.from_pretrained(
+        model_path, 
+        device_map = {"": torch.device(f"cuda:{local_rank}")}
+    ).half() ### YOUR CODE HERE ###
         
 
     # TODO: Create a LoraConfig with the parameters: r=8, lora_alpha=16, 

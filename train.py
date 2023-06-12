@@ -296,11 +296,16 @@ def _is_master_process():
 def load_pretrained_model(local_rank, model_path: str = ""):
     # TODO: Load a pretrained AutoModelForCausalLM from the 'model_path' in float16 data type. 
     # Make sure to set 'device_map' to '{"": torch.device(f"cuda:{local_rank}")}' for DDP training.
-
-    model = AutoModelForCausalLM.from_pretrained(
-        model_path, 
-        device_map = {"": torch.device(f"cuda:{local_rank}")}
-    ).half() ### YOUR CODE HERE ###
+    if os.environ.get("NO_DDP"):
+        model = AutoModelForCausalLM.from_pretrained(
+            model_path,
+        ) ### YOUR CODE HERE ###
+    else:
+        model = AutoModelForCausalLM.from_pretrained(
+            model_path, 
+            device_map = {"": torch.device(f"cuda:{local_rank}")}
+        ).half() ### YOUR CODE HERE ###
+        
 
     # TODO: Create a LoraConfig with the parameters: r=8, lora_alpha=16, 
     # lora_dropout=0.05, bias="none", task_type="CAUSAL_LM".
@@ -338,7 +343,7 @@ if __name__ == "__main__":
     size_valid_set = 0.1
     max_length = 512
     num_epochs = 10
-    batch_size = 2
+    batch_size = os.environ.get("BATCH_SIZE", 4)
     gradient_accumulation_steps = 16
 
     learning_rate = 3e-4
